@@ -92,9 +92,9 @@ bool pathrequeststyle             = false;
 bool is_specified_endpoint        = false;
 std::string program_name;
 std::string service_path          = "/";
-std::string host                  = "http://s3.amazonaws.com";
+std::string host                  = "http://s3.cn-north-1.amazonaws.com.cn";
 std::string bucket                = "";
-std::string endpoint              = "us-east-1";
+std::string endpoint              = "cn-north-1";
 
 //-------------------------------------------------------------------
 // Static valiables
@@ -137,7 +137,7 @@ static int readdir_multi_head(const char* path, S3ObjList& head, void* buf, fuse
 static int list_bucket(const char* path, S3ObjList& head, const char* delimiter, bool check_content_only = false);
 static int directory_empty(const char* path);
 static bool is_truncated(xmlDocPtr doc);;
-static int append_objects_from_xml_ex(const char* path, xmlDocPtr doc, xmlXPathContextPtr ctx, 
+static int append_objects_from_xml_ex(const char* path, xmlDocPtr doc, xmlXPathContextPtr ctx,
               const char* ex_contents, const char* ex_key, const char* ex_etag, int isCPrefix, S3ObjList& head);
 static int append_objects_from_xml(const char* path, xmlDocPtr doc, S3ObjList& head);
 static bool GetXmlNsUrl(xmlDocPtr doc, string& nsurl);
@@ -1239,7 +1239,7 @@ static int rename_directory(const char* from, const char* to)
   string newpath;                       // should be from name(not used)
   string nowcache;                      // now cache path(not used)
   int DirType;
-  bool normdir; 
+  bool normdir;
   MVNODE* mn_head = NULL;
   MVNODE* mn_tail = NULL;
   MVNODE* mn_cur;
@@ -1252,7 +1252,7 @@ static int rename_directory(const char* from, const char* to)
   //
   // Initiate and Add base directory into MVNODE struct.
   //
-  strto += "/";	
+  strto += "/";
   if(0 == chk_dir_object_type(from, newpath, strfrom, nowcache, NULL, &DirType) && DIRTYPE_UNKNOWN != DirType){
     if(DIRTYPE_NOOBJ != DirType){
       normdir = false;
@@ -1274,7 +1274,7 @@ static int rename_directory(const char* from, const char* to)
   // (CommonPrefixes is empty, but all object is listed in Key.)
   if(0 != (result = list_bucket(basepath.c_str(), head, NULL))){
     DPRNNN("list_bucket returns error.");
-    return result; 
+    return result;
   }
   head.GetNameList(headlist);                       // get name without "/".
   S3ObjList::MakeHierarchizedList(headlist, false); // add hierarchized dir.
@@ -1308,7 +1308,7 @@ static int rename_directory(const char* from, const char* to)
       is_dir  = false;
       normdir = false;
     }
-    
+
     // push this one onto the stack
     if(NULL == add_mvnode(&mn_head, &mn_tail, from_name.c_str(), to_name.c_str(), is_dir, normdir)){
       return -ENOMEM;
@@ -1513,7 +1513,7 @@ static int s3fs_chmod_nocopy(const char* path, mode_t mode)
   if(S_ISDIR(stbuf.st_mode)){
     // Should rebuild all directory object
     // Need to remove old dir("dir" etc) and make new dir("dir/")
-    
+
     // At first, remove directory old object
     if(IS_RMTYPEDIR(nDirType)){
       S3fsCurl s3fscurl;
@@ -2274,7 +2274,7 @@ static int readdir_multi_head(const char* path, S3ObjList& head, void* buf, fuse
 
     // Multi request
     if(0 != (result = curlmulti.Request())){
-      DPRN("error occuered in multi request(errno=%d).", result); 
+      DPRN("error occuered in multi request(errno=%d).", result);
       break;
     }
 
@@ -2338,7 +2338,7 @@ static int s3fs_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off
 
 static int list_bucket(const char* path, S3ObjList& head, const char* delimiter, bool check_content_only)
 {
-  int       result; 
+  int       result;
   string    s3_realpath;
   string    query_delimiter;;
   string    query_prefix;;
@@ -2434,7 +2434,7 @@ static int list_bucket(const char* path, S3ObjList& head, const char* delimiter,
 
 const char* c_strErrorObjectName = "FILE or SUBDIR in DIR";
 
-static int append_objects_from_xml_ex(const char* path, xmlDocPtr doc, xmlXPathContextPtr ctx, 
+static int append_objects_from_xml_ex(const char* path, xmlDocPtr doc, xmlXPathContextPtr ctx,
        const char* ex_contents, const char* ex_key, const char* ex_etag, int isCPrefix, S3ObjList& head)
 {
   xmlXPathObjectPtr contents_xp;
@@ -3557,7 +3557,7 @@ static int s3fs_utility_mode(void)
 
 //
 // If calling with wrong region, s3fs gets following error body as 400 erro code.
-// "<Error><Code>AuthorizationHeaderMalformed</Code><Message>The authorization header is 
+// "<Error><Code>AuthorizationHeaderMalformed</Code><Message>The authorization header is
 //  malformed; the region 'us-east-1' is wrong; expecting 'ap-northeast-1'</Message>
 //  <Region>ap-northeast-1</Region><RequestId>...</RequestId><HostId>...</HostId>
 //  </Error>"
@@ -3617,10 +3617,10 @@ static int s3fs_check_service(void)
         FPRN("Could not connect wrong region %s, so retry to connect region %s.", endpoint.c_str(), expectregion.c_str());
         endpoint = expectregion;
         if(S3fsCurl::IsSignatureV4()){
-            if(host == "http://s3.amazonaws.com"){
-                host = "http://s3-" + endpoint + ".amazonaws.com";
-            }else if(host == "https://s3.amazonaws.com"){
-                host = "https://s3-" + endpoint + ".amazonaws.com";
+            if(host == "http://s3.cn-north-1.amazonaws.com.cn"){
+                host = "http://s3-" + endpoint + ".amazonaws.com.cn";
+            }else if(host == "https://s3.cn-north-1.amazonaws.com.cn"){
+                host = "https://s3-" + endpoint + ".amazonaws.com.cn";
             }
         }
 
@@ -3673,7 +3673,7 @@ static int s3fs_check_service(void)
   // make sure remote mountpath exists and is a directory
   if(mount_prefix.size() > 0){
     if(remote_mountpath_exists(mount_prefix.c_str()) != 0){
-      fprintf(stderr, "%s: remote mountpath %s not found.\n", 
+      fprintf(stderr, "%s: remote mountpath %s not found.\n",
           program_name.c_str(), mount_prefix.c_str());
       return EXIT_FAILURE;
     }
@@ -3717,14 +3717,14 @@ static int check_for_aws_format(void)
 
       first_pos = line.find_first_of(" \t");
       if(first_pos != string::npos){
-        printf ("%s: invalid line in passwd file, found whitespace character\n", 
+        printf ("%s: invalid line in passwd file, found whitespace character\n",
            program_name.c_str());
         return -1;
       }
 
       first_pos = line.find_first_of("[");
       if(first_pos != string::npos && first_pos == 0){
-        printf ("%s: invalid line in passwd file, found a bracket \"[\" character\n", 
+        printf ("%s: invalid line in passwd file, found a bracket \"[\" character\n",
            program_name.c_str());
         return -1;
       }
@@ -3760,7 +3760,7 @@ static int check_for_aws_format(void)
 
 //
 // check_passwd_file_perms
-// 
+//
 // expect that global passwd_file variable contains
 // a non-empty value and is readable by the current user
 //
@@ -3775,40 +3775,40 @@ static int check_passwd_file_perms(void)
 
   // let's get the file info
   if(stat(passwd_file.c_str(), &info) != 0){
-    fprintf (stderr, "%s: unexpected error from stat(%s, ) \n", 
+    fprintf (stderr, "%s: unexpected error from stat(%s, ) \n",
         program_name.c_str(), passwd_file.c_str());
     return EXIT_FAILURE;
   }
 
-  // return error if any file has others permissions 
+  // return error if any file has others permissions
   if( (info.st_mode & S_IROTH) ||
-      (info.st_mode & S_IWOTH) || 
+      (info.st_mode & S_IWOTH) ||
       (info.st_mode & S_IXOTH)) {
-    fprintf (stderr, "%s: credentials file %s should not have others permissions\n", 
+    fprintf (stderr, "%s: credentials file %s should not have others permissions\n",
         program_name.c_str(), passwd_file.c_str());
     return EXIT_FAILURE;
   }
 
-  // Any local file should not have any group permissions 
-  // /etc/passwd-s3fs can have group permissions 
+  // Any local file should not have any group permissions
+  // /etc/passwd-s3fs can have group permissions
   if(passwd_file != "/etc/passwd-s3fs"){
     if( (info.st_mode & S_IRGRP) ||
-        (info.st_mode & S_IWGRP) || 
+        (info.st_mode & S_IWGRP) ||
         (info.st_mode & S_IXGRP)) {
-      fprintf (stderr, "%s: credentials file %s should not have group permissions\n", 
+      fprintf (stderr, "%s: credentials file %s should not have group permissions\n",
         program_name.c_str(), passwd_file.c_str());
       return EXIT_FAILURE;
     }
   }else{
     // "/etc/passwd-s3fs" does not allow group write.
     if((info.st_mode & S_IWGRP)){
-      fprintf (stderr, "%s: credentials file %s should not have group writable permissions\n", 
+      fprintf (stderr, "%s: credentials file %s should not have group writable permissions\n",
         program_name.c_str(), passwd_file.c_str());
       return EXIT_FAILURE;
     }
   }
   if((info.st_mode & S_IXUSR) || (info.st_mode & S_IXGRP)){
-    fprintf (stderr, "%s: credentials file %s should not have executable permissions\n", 
+    fprintf (stderr, "%s: credentials file %s should not have executable permissions\n",
       program_name.c_str(), passwd_file.c_str());
     return EXIT_FAILURE;
   }
@@ -3819,10 +3819,10 @@ static int check_passwd_file_perms(void)
 // read_passwd_file
 //
 // Support for per bucket credentials
-// 
+//
 // Format for the credentials file:
 // [bucket:]AccessKeyId:SecretAccessKey
-// 
+//
 // Lines beginning with # are considered comments
 // and ignored, as are empty lines
 //
@@ -3872,21 +3872,21 @@ static int read_passwd_file(void)
 
       first_pos = line.find_first_of(" \t");
       if(first_pos != string::npos){
-        printf ("%s: invalid line in passwd file, found whitespace character\n", 
+        printf ("%s: invalid line in passwd file, found whitespace character\n",
            program_name.c_str());
         return EXIT_FAILURE;
       }
 
       first_pos = line.find_first_of("[");
       if(first_pos != string::npos && first_pos == 0){
-        printf ("%s: invalid line in passwd file, found a bracket \"[\" character\n", 
+        printf ("%s: invalid line in passwd file, found a bracket \"[\" character\n",
            program_name.c_str());
         return EXIT_FAILURE;
       }
 
       first_pos = line.find_first_of(":");
       if(first_pos == string::npos){
-        printf ("%s: invalid line in passwd file, no \":\" separator found\n", 
+        printf ("%s: invalid line in passwd file, no \":\" separator found\n",
            program_name.c_str());
         return EXIT_FAILURE;
       }
@@ -3900,7 +3900,7 @@ static int read_passwd_file(void)
       }else{
         // no bucket specified - original style - found default key
         if(default_found == 1){
-          printf ("%s: more than one default key pair found in passwd file\n", 
+          printf ("%s: more than one default key pair found in passwd file\n",
             program_name.c_str());
           return EXIT_FAILURE;
         }
@@ -3932,7 +3932,7 @@ static int read_passwd_file(void)
 //
 // get_access_keys
 //
-// called only when were are not mounting a 
+// called only when were are not mounting a
 // public bucket
 //
 // Here is the order precedence for getting the
@@ -4027,13 +4027,13 @@ static int get_access_keys(void)
    }
 
   // 5 - from the system default location
-  passwd_file.assign("/etc/passwd-s3fs"); 
+  passwd_file.assign("/etc/passwd-s3fs");
   ifstream PF(passwd_file.c_str());
   if(PF.good()){
     PF.close();
     return read_passwd_file();
   }
-  
+
   fprintf(stderr, "%s: could not determine how to establish security credentials\n",
            program_name.c_str());
   return EXIT_FAILURE;
@@ -4069,10 +4069,10 @@ static int set_moutpoint_attribute(struct stat& mpst)
 }
 
 // This is repeatedly called by the fuse option parser
-// if the key is equal to FUSE_OPT_KEY_OPT, it's an option passed in prefixed by 
+// if the key is equal to FUSE_OPT_KEY_OPT, it's an option passed in prefixed by
 // '-' or '--' e.g.: -f -d -ousecache=/tmp
 //
-// if the key is equal to FUSE_OPT_KEY_NONOPT, it's either the bucket name 
+// if the key is equal to FUSE_OPT_KEY_NONOPT, it's either the bucket name
 //  or the mountpoint. The bucket name will always come before the mountpoint
 static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_args* outargs)
 {
@@ -4108,17 +4108,17 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
       struct stat stbuf;
 
       if(stat(arg, &stbuf) == -1){
-        fprintf(stderr, "%s: unable to access MOUNTPOINT %s: %s\n", 
+        fprintf(stderr, "%s: unable to access MOUNTPOINT %s: %s\n",
             program_name.c_str(), mountpoint.c_str(), strerror(errno));
         return -1;
       }
       if(!(S_ISDIR(stbuf.st_mode))){
-        fprintf(stderr, "%s: MOUNTPOINT: %s is not a directory\n", 
+        fprintf(stderr, "%s: MOUNTPOINT: %s is not a directory\n",
                 program_name.c_str(), mountpoint.c_str());
         return -1;
       }
       if(!set_moutpoint_attribute(stbuf)){
-        fprintf(stderr, "%s: MOUNTPOINT: %s permission denied.\n", 
+        fprintf(stderr, "%s: MOUNTPOINT: %s permission denied.\n",
                 program_name.c_str(), mountpoint.c_str());
         return -1;
       }
@@ -4127,7 +4127,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
         struct dirent *ent;
         DIR *dp = opendir(mountpoint.c_str());
         if(dp == NULL){
-          fprintf(stderr, "%s: failed to open MOUNTPOINT: %s: %s\n", 
+          fprintf(stderr, "%s: failed to open MOUNTPOINT: %s: %s\n",
                 program_name.c_str(), mountpoint.c_str(), strerror(errno));
           return -1;
         }
@@ -4135,7 +4135,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
           if(strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0){
             closedir(dp);
             fprintf(stderr, "%s: MOUNTPOINT directory %s is not empty.\n"
-                            "%s: if you are sure this is safe, can use the 'nonempty' mount option.\n", 
+                            "%s: if you are sure this is safe, can use the 'nonempty' mount option.\n",
                             program_name.c_str(), mountpoint.c_str(), program_name.c_str());
             return -1;
           }
@@ -4285,7 +4285,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
     if(0 == STR2NCMP(arg, "ssl_verify_hostname=")){
       long sslvh = static_cast<long>(s3fs_strtoofft(strchr(arg, '=') + sizeof(char)));
       if(-1 == S3fsCurl::SetSslVerifyHostname(sslvh)){
-        fprintf(stderr, "%s: poorly formed argument to option: ssl_verify_hostname\n", 
+        fprintf(stderr, "%s: poorly formed argument to option: ssl_verify_hostname\n",
                 program_name.c_str());
         return -1;
       }
@@ -4307,7 +4307,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
       }else if(0 == pubbucket){
         S3fsCurl::SetPublicBucket(false);
       }else{
-        fprintf(stderr, "%s: poorly formed argument to option: public_bucket\n", 
+        fprintf(stderr, "%s: poorly formed argument to option: public_bucket\n",
            program_name.c_str());
         return -1;
       }
@@ -4360,7 +4360,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
     if(0 == STR2NCMP(arg, "parallel_count=") || 0 == STR2NCMP(arg, "parallel_upload=")){
       int maxpara = static_cast<int>(s3fs_strtoofft(strchr(arg, '=') + sizeof(char)));
       if(0 >= maxpara){
-        fprintf(stderr, "%s: argument should be over 1: parallel_count\n", 
+        fprintf(stderr, "%s: argument should be over 1: parallel_count\n",
            program_name.c_str());
         return -1;
       }
@@ -4374,7 +4374,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
     if(0 == STR2NCMP(arg, "fd_page_size=")){
       size_t pagesize = static_cast<size_t>(s3fs_strtoofft(strchr(arg, '=') + sizeof(char)));
       if(pagesize < static_cast<size_t>(S3fsCurl::GetMultipartSize() * S3fsCurl::GetMaxParallelCount())){
-        fprintf(stderr, "%s: argument should be over 1MB: fd_page_size\n", 
+        fprintf(stderr, "%s: argument should be over 1MB: fd_page_size\n",
            program_name.c_str());
         return -1;
       }
@@ -4395,7 +4395,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
     if(0 == STR2NCMP(arg, "ahbe_conf=")){
       string ahbe_conf = strchr(arg, '=') + sizeof(char);
       if(!AdditionalHeader::get()->Load(ahbe_conf.c_str())){
-        fprintf(stderr, "%s: failed to load ahbe_conf file(%s).\n", 
+        fprintf(stderr, "%s: failed to load ahbe_conf file(%s).\n",
            program_name.c_str(), ahbe_conf.c_str());
         return -1;
       }
@@ -4460,7 +4460,7 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
         debug = true;
         return 0;
       }else{
-        // fuse doesn't understand "--debug", but it 
+        // fuse doesn't understand "--debug", but it
         // understands -d, but we can't pass -d back
         // to fuse, in this case just ignore the
         // second --debug if is was provided.  If we
@@ -4481,12 +4481,12 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
     }
 
     if(0 == STR2NCMP(arg, "accessKeyId=")){
-      fprintf(stderr, "%s: option accessKeyId is no longer supported\n", 
+      fprintf(stderr, "%s: option accessKeyId is no longer supported\n",
               program_name.c_str());
       return -1;
     }
     if(0 == STR2NCMP(arg, "secretAccessKey=")){
-      fprintf(stderr, "%s: option secretAccessKey is no longer supported\n", 
+      fprintf(stderr, "%s: option secretAccessKey is no longer supported\n",
               program_name.c_str());
       return -1;
     }
@@ -4498,7 +4498,7 @@ int main(int argc, char* argv[])
 {
   int ch;
   int fuse_res;
-  int option_index = 0; 
+  int option_index = 0;
   struct fuse_operations s3fs_oper;
 
   static const struct option long_opts[] = {
@@ -4512,7 +4512,7 @@ int main(int argc, char* argv[])
   xmlInitParser();
   LIBXML_TEST_VERSION
 
-  // get progam name - emulate basename 
+  // get progam name - emulate basename
   size_t found = string::npos;
   program_name.assign(argv[0]);
   found = program_name.find_last_of("/");
@@ -4617,7 +4617,7 @@ int main(int argc, char* argv[])
       exit(EXIT_FAILURE);
     }
     // More error checking on the access key pair can be done
-    // like checking for appropriate lengths and characters  
+    // like checking for appropriate lengths and characters
   }
 
   // There's room for more command line error checking
@@ -4629,11 +4629,11 @@ int main(int argc, char* argv[])
   // our own certificate verification logic.
   // For now, this will be unsupported unless we get a request for it to
   // be supported. In that case, we have a couple of options:
-  // - implement a command line option that bypasses the verify host 
+  // - implement a command line option that bypasses the verify host
   //   but doesn't bypass verifying the certificate
   // - write our own host verification (this might be complex)
   // See issue #128strncasecmp
-  /* 
+  /*
   if(1 == S3fsCurl::GetSslVerifyHostname()){
     found = bucket.find_first_of(".");
     if(found != string::npos){
